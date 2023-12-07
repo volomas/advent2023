@@ -1,8 +1,6 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +32,7 @@ public class Day7 {
   }
 
   static Map<String, Integer> cardsStrength = new HashMap<>() {{
+    put("J", 0);
     put("2", 1);
     put("3", 2);
     put("4", 3);
@@ -43,7 +42,6 @@ public class Day7 {
     put("8", 7);
     put("9", 8);
     put("T", 9);
-    put("J", 10);
     put("Q", 11);
     put("K", 12);
     put("A", 13);
@@ -52,30 +50,61 @@ public class Day7 {
   record Hand(String cards, int bid) implements Comparable<Hand> {
 
     Strength strength() {
-      Map<String, Integer> set = new HashMap<>();
+      Map<String, Integer> map = new HashMap<>();
       for (String c : cards.split("")) {
-        set.computeIfPresent(c, (k, v) -> v + 1);
-        set.putIfAbsent(c, 1);
+        map.computeIfPresent(c, (k, v) -> v + 1);
+        map.putIfAbsent(c, 1);
       }
 
-      if (set.size() == 1) return Strength.FIVE_OF_KIND;
-      if (set.size() == 5) return Strength.HIGH_CARD;
-      if (set.size() == 4) return Strength.ONE_PAIR;
-      if (set.size() == 3) {
-        if (set.values().stream().anyMatch(v -> v == 3)) {
-          return Strength.THREE_OF_KIND;
-        } else {
-          return Strength.TWO_PAIR;
+      Strength originalStrength = switch (map.size()) {
+        case 1 -> Strength.FIVE_OF_KIND;
+        case 5 -> Strength.HIGH_CARD;
+        case 4 -> Strength.ONE_PAIR;
+        case 3 -> {
+          if (map.values().stream().anyMatch(v -> v == 3)) {
+            yield Strength.THREE_OF_KIND;
+          } else {
+            yield Strength.TWO_PAIR;
+          }
         }
-      }
-      if (set.size() == 2) {
-        if (set.values().stream().anyMatch(v -> v == 4)) {
-          return Strength.FOUR_OF_KIND;
-        } else {
-          return Strength.FULL_HOUSE;
+        case 2 -> {
+          if (map.values().stream().anyMatch(v -> v == 4)) {
+            yield Strength.FOUR_OF_KIND;
+          } else {
+            yield Strength.FULL_HOUSE;
+          }
         }
+        default -> throw new IllegalStateException();
+      };
+
+      int jokers = map.getOrDefault("J", 0);
+      if (jokers == 1) {
+        return switch (originalStrength) {
+          case HIGH_CARD -> Strength.ONE_PAIR;
+          case ONE_PAIR -> Strength.THREE_OF_KIND;
+          case TWO_PAIR -> Strength.FULL_HOUSE;
+          case FOUR_OF_KIND -> Strength.FIVE_OF_KIND;
+          case THREE_OF_KIND -> Strength.FOUR_OF_KIND;
+          default -> throw new IllegalStateException();
+        };
+      } else if (jokers == 2) {
+        return switch (originalStrength) {
+          case FULL_HOUSE -> Strength.FIVE_OF_KIND;
+          case ONE_PAIR -> Strength.THREE_OF_KIND;
+          case TWO_PAIR -> Strength.FOUR_OF_KIND;
+          default -> throw new IllegalStateException();
+        };
+      } else if (jokers == 3) {
+        return switch (originalStrength) {
+          case FULL_HOUSE -> Strength.FIVE_OF_KIND;
+          case THREE_OF_KIND -> Strength.FOUR_OF_KIND;
+          default -> throw new IllegalStateException();
+        };
+      } else if (jokers == 4) {
+        return Strength.FIVE_OF_KIND;
       }
-      throw new IllegalStateException();
+
+      return originalStrength;
     }
 
     @Override
@@ -85,7 +114,7 @@ public class Day7 {
         var otherCards = o.cards().split("");
         for (int i = 0; i < 5; i++) {
           if (!thisCards[i].equals(otherCards[i])) {
-            return - cardsStrength.get(thisCards[i]).compareTo(cardsStrength.get(otherCards[i]));
+            return -cardsStrength.get(thisCards[i]).compareTo(cardsStrength.get(otherCards[i]));
           }
         }
       }
