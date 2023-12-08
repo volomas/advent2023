@@ -9,6 +9,7 @@ public class Day8 {
   public static void main(String[] args) throws IOException {
 //    solve("day8/sample.txt");
 //    solve("day8/sample2.txt");
+//    solve("day8/part2.txt");
     solve("day8/input.txt");
 //    solve("day8/yura.txt");
   }
@@ -22,27 +23,48 @@ public class Day8 {
     lines.stream().skip(2).forEach(l -> {
       String[] split = l.split("\s+=\s+");
       String nodeName = split[0].trim();
-      String left = split[1].substring(1,4);
-      String right = split[1].substring(6,9);
-      network.put(nodeName, new Node(left, right));
+      String left = split[1].substring(1, 4);
+      String right = split[1].substring(6, 9);
+      network.put(nodeName, new Node(nodeName, left, right));
     });
 
-    String curr = "AAA";
-    int step = 0;
-    while (!curr.equals("ZZZ")) {
-      Node next = network.get(curr);
-      System.out.println(STR."Step = \{step}; curr = \{curr}");
-      String nextStep = nav[step % nav.length];
-      if (nextStep.equals("L")) {
-        curr = next.left;
-      } else {
-        curr = next.right;
+    Map<Node, Integer> initSteps = new HashMap<>();
+    for (Node start : network.entrySet().stream().filter(n -> n.getKey().endsWith("A"))
+        .map(Map.Entry::getValue)
+        .toList()) {
+      var curr = start;
+      int step = 0;
+      while (!curr.name().endsWith("Z")) {
+        String nextStep = nav[step % nav.length];
+        curr = network.get(nextStep.equals("L") ? curr.left : curr.right);
+        step++;
       }
-      step++;
+      initSteps.put(curr, step);
     }
-
-    System.out.println(STR."\{filename} : \{step}");
+    List<Integer> steps = initSteps.values().stream().toList();
+    Long res = steps.stream().map(i -> (long) i).reduce(Day8::lcm).orElseThrow();
+    System.out.println(STR."res = \{res}");
   }
 
-  record Node(String left, String right){}
+  record Node(String name, String left, String right) {
+  }
+
+  static long lcm(long a, long b) {
+    return a * b / gcd(a, b);
+  }
+
+  static long gcd(long a, long b) {
+    if (a == 0) return b;
+    while (b != 0) {
+      long r;
+      if (a > b) {
+        r = a % b;
+      } else {
+        r = b % a;
+      }
+      a = b;
+      b = r;
+    }
+    return a;
+  }
 }
