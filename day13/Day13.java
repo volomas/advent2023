@@ -6,7 +6,7 @@ import java.util.Arrays;
 public class Day13 {
   public static void main(String[] args) throws IOException {
     solve("day13/sample.txt");
-//    solve("day13/input.txt");
+    solve("day13/input.txt");
   }
 
   private static void solve(String filename) throws IOException {
@@ -36,7 +36,7 @@ public class Day13 {
         }
       }
     }
-    System.out.println(STR."Final score is \{totalScore}");
+    System.out.println(STR. "Final score is \{ totalScore }" );
   }
 
   private static int verticalMirrorScore(String[] patterns, int col) {
@@ -58,7 +58,7 @@ public class Day13 {
     if (b[0] == null) {
       return 0;
     }
-    boolean mirror = isMirror(a, b);
+    boolean mirror = isMirrorWithSmudge(a, b);
     if (!mirror) return 0;
     System.out.println(STR. "Found mirror after colIdx = \{ col }" );
     return col + 1;
@@ -71,23 +71,28 @@ public class Day13 {
     if (b[0] == null) {
       return 0;
     }
-    boolean mirror = isMirror(a, b);
+    boolean mirror = isMirrorWithSmudge(a, b);
     if (!mirror) return 0;
     System.out.println(STR. "Found mirror after rowIdx = \{ row }" );
     return 100 * (row + 1);
   }
 
-  private static boolean isMirror(String[] a, String[] b) {
-    boolean mirror = true;
+  private static boolean isMirrorWithSmudge(String[] a, String[] b) {
+    int diffSum = 0;
     for (int i = 0; i < b.length; i++) {
       if (b[i] == null) {
         break;
       }
-      if (!b[i].equals(a[a.length - 1 - i])) {
-        mirror = false;
-        break;
-      }
+      diffSum += calcSubDiff(b[i], a[a.length - i - 1]);
     }
-    return mirror;
+    return diffSum == 1;
+  }
+
+  static int calcSubDiff(String x, String y) {
+    int cost = 0;
+    for (int i = 0; i < x.length(); i++) {
+      cost += x.charAt(i) == y.charAt(i) ? 0 : 1;
+    }
+    return cost;
   }
 }
