@@ -9,8 +9,8 @@ import java.util.Set;
 
 public class Day18 {
   public static void main(String[] args) throws IOException {
-    solve("day18/sample.txt");
-//    solve("day18/input.txt");
+//    solve("day18/sample.txt");
+    solve("day18/input.txt");
   }
 
   private static void solve(String filename) throws IOException {
@@ -43,23 +43,17 @@ public class Day18 {
       }
     }
 
-//    if (!rimPoints.getFirst().equals(rimPoints.getLast())) {
-//      throw new IllegalStateException(STR. "\{ rimPoints.getFirst() } != \{ rimPoints.getLast() }" );
-//    }
-//    rimPoints.removeLast();
-    System.out.println(rimPoints);
-//    part1(rimPoints);
-    long sum = 0;
-    long rim = 0;
+    long inner = 0;
+    long perimeter = 0;
     for (int i = 0; i < rimPoints.size() - 1; i++) {
       Coord a = rimPoints.get(i);
       Coord b = rimPoints.get(i + 1);
-      sum += ((long) a.j * b.i - (long) a.i * b.j);
-      rim += a.i == b.i ? Math.abs(a.j - b.j) - 1: Math.abs(a.i - b.i) - 1;
+      inner += ((long) a.j * b.i - (long) a.i * b.j);
+      perimeter += Math.abs(a.j - b.j) + Math.abs(a.i - b.i);
     }
 
-    System.out.println(STR. "Sum: \{ sum }; Rim: \{rim}; Area: \{ sum / 2 } Total: \{rim + sum / 2}" );
-    // 952408144115
+    long area = perimeter / 2 + inner / 2 + 1;
+    System.out.println(STR. "Area: \{ area }" );
   }
 
   private static void part1(List<Coord> list) {
@@ -74,7 +68,6 @@ public class Day18 {
     int maxI = (int) bounds.getMaxY();
     int minJ = (int) bounds.getMinX();
     int maxJ = (int) bounds.getMaxX();
-    System.out.println(STR. "i: \{ minI } -> \{ maxI }; j: \{ minJ } -> \{ maxJ }" );
     int inner = 0;
     for (int i = minI; i <= maxI; i++) {
       for (int j = minJ; j <= maxJ; j++) {
@@ -82,16 +75,12 @@ public class Day18 {
           continue;
         }
         if (poly.contains(j, i)) {
-//          System.out.println(STR."\{i},\{j} is inside");
           inner += 1;
         }
       }
     }
-    System.out.println(STR. "Rim count: \{ rim.size() }" );
-    System.out.println(STR. "Inner count: \{ inner }" );
     System.out.println(STR. "Sum from poly: \{ rim.size() + inner }" );
   }
 
-  private record Coord(int i, int j) {
-  }
+  private record Coord(int i, int j) { }
 }
