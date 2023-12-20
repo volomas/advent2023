@@ -34,7 +34,6 @@ public class Day17 {
 
     int cost = findWayOut(grid);
     System.out.println(STR. "Cost: \{ cost }" );
-//    print(grid);
   }
 
   private static int findWayOut(int[][] grid) {
@@ -47,7 +46,6 @@ public class Day17 {
     q.add(new CellWithVal(start, 0));
     while (!q.isEmpty()) {
       var curr = q.remove();
-      System.out.println(curr);
       if (curr.cell().i() == grid.length - 1
           && curr.cell().j() == grid[0].length - 1
           && curr.cell().oneDirectionSteps >= 3) {
@@ -62,7 +60,6 @@ public class Day17 {
           cameFrom.put(next, curr.cell());
           q.add(new CellWithVal(next, newCost));
         }
-
       }
     }
 
@@ -108,7 +105,10 @@ public class Day17 {
   private static List<Cell> getNext(int[][] grid, Map<Cell, Cell> cameFrom, Cell curr) {
     Cell prev = cameFrom.get(curr);
     if (prev == null) {
-      return List.of(new Cell(curr.i(), curr.j() + 1, Direction.LEFT, 0));
+      return List.of(
+          new Cell(curr.i(), curr.j() + 1, Direction.LEFT, 0),
+          new Cell(curr.i() + 1, curr.j(), Direction.UP, 0)
+      );
     } else {
       List<Cell> nextCells = new ArrayList<>();
       if (prev.i() == curr.i()) {
