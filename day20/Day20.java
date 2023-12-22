@@ -12,8 +12,8 @@ import java.util.Queue;
 import java.util.Set;
 
 public class Day20 {
-  private static boolean LOW = true;
-  private static boolean HIGH = false;
+  private static boolean LOW = false;
+  private static boolean HIGH = true;
 
   public static void main(String[] args) throws IOException {
 //    solve("day20/sample.txt");
@@ -33,15 +33,14 @@ public class Day20 {
     }
 
     for (String line : lines) {
-      if (!line.startsWith("&")) {
-        String[] split = line.split("\\s+->\\s+");
-        String name = split[0].startsWith("%") ? split[0].substring(1) : split[0];
-        Arrays.stream(split[1].split(", ")).filter(conjSet::containsKey).forEach(
-            s -> conjSet.get(s).add(name)
-        );
-      }
+      String[] split = line.split("\\s+->\\s+");
+      String name = split[0].startsWith("%") || split[0].startsWith("&") ? split[0].substring(1) : split[0];
+      Arrays.stream(split[1].split(", ")).filter(conjSet::containsKey).forEach(
+          s -> conjSet.get(s).add(name)
+      );
     }
 
+    ConMod lastModule = null;
     for (String line : lines) {
       String[] split = line.split("\\s+->\\s+");
       String modName = split[0];
@@ -70,27 +69,37 @@ public class Day20 {
           ConMod key = new ConMod(name, List.copyOf(conjSet.get(name)));
           targets.put(key, targetList);
           modules.put(name, key);
+          if (targetList.contains("rx")) {
+            lastModule = key;
+          }
         } else {
           throw new IllegalStateException();
         }
       }
     }
+    if (lastModule == null)
+      throw new IllegalStateException();
 
-    int low = 0;
-    int high = 0;
-    for (int i = 1; i <= 1000; i++) {
-      System.out.println(STR."Push button \{i}");
+    Map<String, Long> stepsToHigh = new HashMap<>();
+    lastModule.state.keySet().forEach(k -> stepsToHigh.put(k, 0L));
+    long press = 0L;
+    boolean allSteps = false;
+    while (!allSteps) {
+      press++;
       Queue<Pulse> q = new ArrayDeque<>();
       q.add(new Pulse(LOW, "button", "broadcaster"));
       while (!q.isEmpty()) {
         Pulse inPulse = q.poll();
-        System.out.println(inPulse);
-        if (inPulse.signal == HIGH) {
-          high++;
-        } else {
-          low++;
-        }
         Module module = modules.get(inPulse.target);
+        if (module == lastModule) {
+          if (inPulse.signal == HIGH) {
+            stepsToHigh.put(inPulse.from, press);
+          }
+          allSteps = stepsToHigh.values().stream().allMatch(n -> n > 0);
+          if (allSteps) {
+            break;
+          }
+        }
         List<String> t = targets.get(module);
         if (t != null) {
           for (Pulse pulse : module.sendPulses(inPulse, t)) {
@@ -100,7 +109,10 @@ public class Day20 {
       }
     }
 
-    System.out.println(STR."Signals: low=\{low}; high=\{high}. Answer = \{low * high}");
+    System.out.println(STR. "Cycles: \{ stepsToHigh }" );
+    long answer = stepsToHigh.values().stream().reduce(Utils::lcm).orElseThrow();
+    System.out.println(STR. "Answer: \{ answer }" );
+
   }
 
   static class FlipFlop implements Module {
@@ -168,11 +180,10 @@ public class Day20 {
     }
   }
 
-  record Pulse(boolean signal, String from , String target) {
-
+  record Pulse(boolean signal, String from, String target) {
     @Override
     public String toString() {
-      return STR."\{from} -\{signal == HIGH ? "high" : "low"}-> \{target}";
+      return STR. "\{ from } -\{ signal == HIGH ? "high" : "low" }-> \{ target }" ;
     }
   }
 }

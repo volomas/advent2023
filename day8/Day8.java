@@ -42,29 +42,11 @@ public class Day8 {
       initSteps.put(curr, step);
     }
     List<Integer> steps = initSteps.values().stream().toList();
-    Long res = steps.stream().map(i -> (long) i).reduce(Day8::lcm).orElseThrow();
+    Long res = steps.stream().map(i -> (long) i).reduce(Utils::lcm).orElseThrow();
     System.out.println(STR."res = \{res}");
   }
 
   record Node(String name, String left, String right) {
   }
 
-  static long lcm(long a, long b) {
-    return a * b / gcd(a, b);
-  }
-
-  static long gcd(long a, long b) {
-    if (a == 0) return b;
-    while (b != 0) {
-      long r;
-      if (a > b) {
-        r = a % b;
-      } else {
-        r = b % a;
-      }
-      a = b;
-      b = r;
-    }
-    return a;
-  }
 }
